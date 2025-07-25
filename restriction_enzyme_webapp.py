@@ -4,8 +4,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from collections import defaultdict
 import re
 from itertools import product
@@ -46,35 +44,114 @@ class RestrictionEnzymeFinder:
             'V': ['GTA', 'GTC', 'GTG', 'GTT'],  # Val
         }
         
-        # 制限酵素データベース
+        # 制限酵素データベース（拡充版）
         self.restriction_enzymes = {
-            'EcoRI': {'site': 'GAATTC', 'cut': 'G/AATTC', 'length': 6, 'category': 'Common'},
-            'BamHI': {'site': 'GGATCC', 'cut': 'G/GATCC', 'length': 6, 'category': 'Common'},
-            'HindIII': {'site': 'AAGCTT', 'cut': 'A/AGCTT', 'length': 6, 'category': 'Common'},
-            'XhoI': {'site': 'CTCGAG', 'cut': 'C/TCGAG', 'length': 6, 'category': 'Common'},
-            'XbaI': {'site': 'TCTAGA', 'cut': 'T/CTAGA', 'length': 6, 'category': 'Common'},
-            'KpnI': {'site': 'GGTACC', 'cut': 'GGTAC/C', 'length': 6, 'category': 'Standard'},
-            'SalI': {'site': 'GTCGAC', 'cut': 'G/TCGAC', 'length': 6, 'category': 'Standard'},
-            'PstI': {'site': 'CTGCAG', 'cut': 'CTGCA/G', 'length': 6, 'category': 'Standard'},
-            'NcoI': {'site': 'CCATGG', 'cut': 'C/CATGG', 'length': 6, 'category': 'Standard'},
-            'NdeI': {'site': 'CATATG', 'cut': 'CA/TATG', 'length': 6, 'category': 'Standard'},
-            'NheI': {'site': 'GCTAGC', 'cut': 'G/CTAGC', 'length': 6, 'category': 'Standard'},
-            'SpeI': {'site': 'ACTAGT', 'cut': 'A/CTAGT', 'length': 6, 'category': 'Standard'},
-            'ApaI': {'site': 'GGGCCC', 'cut': 'GGGCC/C', 'length': 6, 'category': 'Advanced'},
-            'BglII': {'site': 'AGATCT', 'cut': 'A/GATCT', 'length': 6, 'category': 'Advanced'},
-            'EcoRV': {'site': 'GATATC', 'cut': 'GAT/ATC', 'length': 6, 'category': 'Advanced'},
-            'MluI': {'site': 'ACGCGT', 'cut': 'A/CGCGT', 'length': 6, 'category': 'Advanced'},
-            'SacI': {'site': 'GAGCTC', 'cut': 'GAGCT/C', 'length': 6, 'category': 'Advanced'},
-            'SmaI': {'site': 'CCCGGG', 'cut': 'CCC/GGG', 'length': 6, 'category': 'Advanced'},
-            'NotI': {'site': 'GCGGCCGC', 'cut': 'GC/GGCCGC', 'length': 8, 'category': 'Advanced'},
-            'AscI': {'site': 'GGCGCGCC', 'cut': 'GG/CGCGCC', 'length': 8, 'category': 'Advanced'},
+            # AokiLab Common - 最もよく使用される制限酵素
+            'EcoRI': {'site': 'GAATTC', 'cut': 'G/AATTC', 'length': 6, 'category': 'AokiLab Common'},
+            'XhoI': {'site': 'CTCGAG', 'cut': 'C/TCGAG', 'length': 6, 'category': 'AokiLab Common'},
+            'NotI': {'site': 'GCGGCCGC', 'cut': 'GC/GGCCGC', 'length': 8, 'category': 'AokiLab Common'},
+            'XbaI': {'site': 'TCTAGA', 'cut': 'T/CTAGA', 'length': 6, 'category': 'AokiLab Common'},
+            'SalI': {'site': 'GTCGAC', 'cut': 'G/TCGAC', 'length': 6, 'category': 'AokiLab Common'},
+            'BamHI': {'site': 'GGATCC', 'cut': 'G/GATCC', 'length': 6, 'category': 'AokiLab Common'},
+            
+            # AokiLab Standard - よく使用される制限酵素
+            'HindIII': {'site': 'AAGCTT', 'cut': 'A/AGCTT', 'length': 6, 'category': 'AokiLab Standard'},
+            'KpnI': {'site': 'GGTACC', 'cut': 'GGTAC/C', 'length': 6, 'category': 'AokiLab Standard'},
+            'PstI': {'site': 'CTGCAG', 'cut': 'CTGCA/G', 'length': 6, 'category': 'AokiLab Standard'},
+            'NcoI': {'site': 'CCATGG', 'cut': 'C/CATGG', 'length': 6, 'category': 'AokiLab Standard'},
+            'NdeI': {'site': 'CATATG', 'cut': 'CA/TATG', 'length': 6, 'category': 'AokiLab Standard'},
+            'NheI': {'site': 'GCTAGC', 'cut': 'G/CTAGC', 'length': 6, 'category': 'AokiLab Standard'},
+            'SpeI': {'site': 'ACTAGT', 'cut': 'A/CTAGT', 'length': 6, 'category': 'AokiLab Standard'},
+            'ApaI': {'site': 'GGGCCC', 'cut': 'GGGCC/C', 'length': 6, 'category': 'AokiLab Standard'},
+            'BglII': {'site': 'AGATCT', 'cut': 'A/GATCT', 'length': 6, 'category': 'AokiLab Standard'},
+            'EcoRV': {'site': 'GATATC', 'cut': 'GAT/ATC', 'length': 6, 'category': 'AokiLab Standard'},
+            'MluI': {'site': 'ACGCGT', 'cut': 'A/CGCGT', 'length': 6, 'category': 'AokiLab Standard'},
+            'SacI': {'site': 'GAGCTC', 'cut': 'GAGCT/C', 'length': 6, 'category': 'AokiLab Standard'},
+            'SmaI': {'site': 'CCCGGG', 'cut': 'CCC/GGG', 'length': 6, 'category': 'AokiLab Standard'},
+            'AscI': {'site': 'GGCGCGCC', 'cut': 'GG/CGCGCC', 'length': 8, 'category': 'AokiLab Standard'},
+            'PacI': {'site': 'TTAATTAA', 'cut': 'TTAAT/TAA', 'length': 8, 'category': 'AokiLab Standard'},
+            'SwaI': {'site': 'ATTTAAAT', 'cut': 'ATTT/AAAT', 'length': 8, 'category': 'AokiLab Standard'},
+            'ClaI': {'site': 'ATCGAT', 'cut': 'AT/CGAT', 'length': 6, 'category': 'AokiLab Standard'},
+            'EagI': {'site': 'CGGCCG', 'cut': 'C/GGCCG', 'length': 6, 'category': 'AokiLab Standard'},
+            'SbfI': {'site': 'CCTGCAGG', 'cut': 'CCTGCA/GG', 'length': 8, 'category': 'AokiLab Standard'},
+            'SfiI': {'site': 'GGCCNNNNGGCC', 'cut': 'GGCCN/NNNGGCC', 'length': 12, 'category': 'AokiLab Standard'},
+            
+            # Others - 頻繁ではないがNEBで利用可能な制限酵素
+            'AatII': {'site': 'GACGTC', 'cut': 'GACGT/C', 'length': 6, 'category': 'Others'},
+            'AccI': {'site': 'GTMKAC', 'cut': 'GT/MKAC', 'length': 6, 'category': 'Others'},
+            'Acc65I': {'site': 'GGTACC', 'cut': 'G/GTACC', 'length': 6, 'category': 'Others'},
+            'AflII': {'site': 'CTTAAG', 'cut': 'C/TTAAG', 'length': 6, 'category': 'Others'},
+            'AgeI': {'site': 'ACCGGT', 'cut': 'A/CCGGT', 'length': 6, 'category': 'Others'},
+            'ApaLI': {'site': 'GTGCAC', 'cut': 'G/TGCAC', 'length': 6, 'category': 'Others'},
+            'AseI': {'site': 'ATTAAT', 'cut': 'AT/TAAT', 'length': 6, 'category': 'Others'},
+            'AvrII': {'site': 'CCTAGG', 'cut': 'C/CTAGG', 'length': 6, 'category': 'Others'},
+            'BclI': {'site': 'TGATCA', 'cut': 'T/GATCA', 'length': 6, 'category': 'Others'},
+            'BsiWI': {'site': 'CGTACG', 'cut': 'C/GTACG', 'length': 6, 'category': 'Others'},
+            'BspDI': {'site': 'ATCGAT', 'cut': 'AT/CGAT', 'length': 6, 'category': 'Others'},
+            'BspEI': {'site': 'TCCGGA', 'cut': 'T/CCGGA', 'length': 6, 'category': 'Others'},
+            'BspHI': {'site': 'TCATGA', 'cut': 'T/CATGA', 'length': 6, 'category': 'Others'},
+            'BsrBI': {'site': 'GAGCGG', 'cut': 'GAG/CGG', 'length': 6, 'category': 'Others'},
+            'BssHII': {'site': 'GCGCGC', 'cut': 'G/CGCGC', 'length': 6, 'category': 'Others'},
+            'BstBI': {'site': 'TTCGAA', 'cut': 'TT/CGAA', 'length': 6, 'category': 'Others'},
+            'BstZ17I': {'site': 'GTATAC', 'cut': 'GTA/TAC', 'length': 6, 'category': 'Others'},
+            'DraI': {'site': 'TTTAAA', 'cut': 'TTT/AAA', 'length': 6, 'category': 'Others'},
+            'EcoO109I': {'site': 'RGGNCCY', 'cut': 'RG/GNCCY', 'length': 7, 'category': 'Others'},
+            'FspI': {'site': 'TGCGCA', 'cut': 'TGC/GCA', 'length': 6, 'category': 'Others'},
+            'HaeII': {'site': 'RGCGCY', 'cut': 'RGCGC/Y', 'length': 6, 'category': 'Others'},
+            'HincII': {'site': 'GTYRAC', 'cut': 'GTY/RAC', 'length': 6, 'category': 'Others'},
+            'HpaI': {'site': 'GTTAAC', 'cut': 'GTT/AAC', 'length': 6, 'category': 'Others'},
+            'KasI': {'site': 'GGCGCC', 'cut': 'G/GCGCC', 'length': 6, 'category': 'Others'},
+            'MscI': {'site': 'TGGCCA', 'cut': 'TGG/CCA', 'length': 6, 'category': 'Others'},
+            'NaeI': {'site': 'GCCGGC', 'cut': 'GCC/GGC', 'length': 6, 'category': 'Others'},
+            'NarI': {'site': 'GGCGCC', 'cut': 'GG/CGCC', 'length': 6, 'category': 'Others'},
+            'NgoMIV': {'site': 'GCCGGC', 'cut': 'G/CCGGC', 'length': 6, 'category': 'Others'},
+            'NruI': {'site': 'TCGCGA', 'cut': 'TCG/CGA', 'length': 6, 'category': 'Others'},
+            'NsiI': {'site': 'ATGCAT', 'cut': 'ATGCA/T', 'length': 6, 'category': 'Others'},
+            'PaeR7I': {'site': 'CTCGAG', 'cut': 'C/TCGAG', 'length': 6, 'category': 'Others'},
+            'PmeI': {'site': 'GTTTAAAC', 'cut': 'GTTT/AAAC', 'length': 8, 'category': 'Others'},
+            'PmlI': {'site': 'CACGTG', 'cut': 'CAC/GTG', 'length': 6, 'category': 'Others'},
+            'Psp1406I': {'site': 'AACGTT', 'cut': 'AA/CGTT', 'length': 6, 'category': 'Others'},
+            'PvuI': {'site': 'CGATCG', 'cut': 'CGAT/CG', 'length': 6, 'category': 'Others'},
+            'PvuII': {'site': 'CAGCTG', 'cut': 'CAG/CTG', 'length': 6, 'category': 'Others'},
+            'SacII': {'site': 'CCGCGG', 'cut': 'CCGC/GG', 'length': 6, 'category': 'Others'},
+            'ScaI': {'site': 'AGTACT', 'cut': 'AGT/ACT', 'length': 6, 'category': 'Others'},
+            'SnaBI': {'site': 'TACGTA', 'cut': 'TAC/GTA', 'length': 6, 'category': 'Others'},
+            'SphI': {'site': 'GCATGC', 'cut': 'GCATG/C', 'length': 6, 'category': 'Others'},
+            'SspI': {'site': 'AATATT', 'cut': 'AAT/ATT', 'length': 6, 'category': 'Others'},
+            'StuI': {'site': 'AGGCCT', 'cut': 'AGG/CCT', 'length': 6, 'category': 'Others'},
+            'XmaI': {'site': 'CCCGGG', 'cut': 'C/CCGGG', 'length': 6, 'category': 'Others'},
+            'ZraI': {'site': 'GACGTC', 'cut': 'GAC/GTC', 'length': 6, 'category': 'Others'},
+            'AhdI': {'site': 'GACNNNNNGTC', 'cut': 'GACNNN/NNGTC', 'length': 11, 'category': 'Others'},
+            'AlwNI': {'site': 'CAGNNNCTG', 'cut': 'CAGNNN/CTG', 'length': 9, 'category': 'Others'},
+            'BaeI': {'site': 'ACNNNNGTAYC', 'cut': 'ACNNNN/GTAYC', 'length': 11, 'category': 'Others'},
+            'BsaI': {'site': 'GGTCTC', 'cut': 'GGTCTC/NNNN', 'length': 6, 'category': 'Others'},
+            'BsmBI': {'site': 'CGTCTC', 'cut': 'CGTCTC/N', 'length': 6, 'category': 'Others'},
+            'BspMI': {'site': 'ACCTGC', 'cut': 'ACCTGC/NNNN', 'length': 6, 'category': 'Others'},
+            'Esp3I': {'site': 'CGTCTC', 'cut': 'CGTCTC/N', 'length': 6, 'category': 'Others'},
+            'FokI': {'site': 'GGATG', 'cut': 'GGATG/NNNNNNNNN', 'length': 5, 'category': 'Others'},
+            'HphI': {'site': 'GGTGA', 'cut': 'GGTGA/NNNNNNNN', 'length': 5, 'category': 'Others'},
+            'MboI': {'site': 'GATC', 'cut': '/GATC', 'length': 4, 'category': 'Others'},
+            'Sau3AI': {'site': 'GATC', 'cut': '/GATC', 'length': 4, 'category': 'Others'},
+            'TaqI': {'site': 'TCGA', 'cut': 'T/CGA', 'length': 4, 'category': 'Others'},
+            'HaeIII': {'site': 'GGCC', 'cut': 'GG/CC', 'length': 4, 'category': 'Others'},
+            'MspI': {'site': 'CCGG', 'cut': 'C/CGG', 'length': 4, 'category': 'Others'},
+            'HpaII': {'site': 'CCGG', 'cut': 'C/CGG', 'length': 4, 'category': 'Others'},
+            'RsaI': {'site': 'GTAC', 'cut': 'GT/AC', 'length': 4, 'category': 'Others'},
+            'AluI': {'site': 'AGCT', 'cut': 'AG/CT', 'length': 4, 'category': 'Others'},
         }
         
-        # 優先度設定
+        # 優先度設定（カテゴリに基づく）
         self.enzyme_priority = {
-            'EcoRI': 1, 'BamHI': 1, 'HindIII': 1, 'XhoI': 1, 'XbaI': 1,
-            'KpnI': 2, 'SalI': 2, 'PstI': 2, 'NcoI': 2, 'NdeI': 2,
-            'NotI': 3, 'SpeI': 3, 'NheI': 3, 'ApaI': 3, 'SacI': 3
+            # AokiLab Common - 最高優先度
+            'EcoRI': 1, 'XhoI': 1, 'NotI': 1, 'XbaI': 1, 'SalI': 1, 'BamHI': 1,
+            
+            # AokiLab Standard - 中優先度
+            'HindIII': 2, 'KpnI': 2, 'PstI': 2, 'NcoI': 2, 'NdeI': 2, 'NheI': 2,
+            'SpeI': 2, 'ApaI': 2, 'BglII': 2, 'EcoRV': 2, 'MluI': 2, 'SacI': 2,
+            'SmaI': 2, 'AscI': 2, 'PacI': 2, 'SwaI': 2, 'ClaI': 2, 'EagI': 2,
+            'SbfI': 2, 'SfiI': 2,
+            
+            # Others - 低優先度（デフォルトで3）
         }
     
     def find_restriction_sites_in_sequence(self, aa_sequence, selected_enzymes, max_aa_span=4):
@@ -99,7 +176,7 @@ class RestrictionEnzymeFinder:
                         'position': start_pos + 1,
                         'span': span,
                         'aa_pattern': aa_segment,
-                        'priority': self.enzyme_priority.get(match['enzyme'], 4),
+                        'priority': self.enzyme_priority.get(match['enzyme'], 3),  # Othersは優先度3
                         'codon_options': match['codon_options'][:5]  # 上位5個まで
                     })
         
@@ -166,6 +243,21 @@ def main():
     # タイトルとヘッダー
     st.title("🧬 制限酵素サイト導入ツール")
     st.markdown("**コドンの冗長性を利用した効率的な制限酵素サイト検索**")
+    st.markdown(f"📊 **データベース**: {len(finder.restriction_enzymes)}種類の制限酵素を収録")
+    
+    # 使用方法の説明
+    with st.expander("💡 使用方法"):
+        st.markdown("""
+        1. **アミノ酸配列を入力**: サイドバーにタンパク質の1文字コード配列を入力
+        2. **制限酵素を選択**: 
+           - 🌟 **AokiLab Common**: 最頻用の6酵素（EcoRI, XhoI, NotI, XbaI, SalI, BamHI）
+           - ⭐ **AokiLab Standard**: よく使用される酵素（20種類）
+           - 📋 **Others**: その他のNEB制限酵素（50種類以上）
+        3. **最大スパンを調整**: 検索範囲のアミノ酸数を設定
+        4. **結果を確認**: 4つのタブで詳細な解析結果を表示
+        5. **データをエクスポート**: CSV/JSON形式でダウンロード可能
+        """)
+    
     st.markdown("---")
     
     # サイドバー設定
@@ -211,20 +303,29 @@ def main():
     if col2.button("全解除"):
         st.session_state.select_all = False
     
-    # カテゴリー別チェックボックス
-    for category, enzymes in categories.items():
-        st.sidebar.markdown(f"**{category}**")
-        for enzyme in enzymes:
-            enzyme_data = finder.restriction_enzymes[enzyme]
-            default_value = getattr(st.session_state, 'select_all', category == 'Common')
+    # カテゴリー別チェックボックス（優先順位順に表示）
+    category_order = ['AokiLab Common', 'AokiLab Standard', 'Others']
+    for category in category_order:
+        if category in categories:
+            enzymes = sorted(categories[category])  # アルファベット順にソート
+            st.sidebar.markdown(f"**{category}** ({len(enzymes)}個)")
             
-            if st.sidebar.checkbox(
-                f"{enzyme} ({enzyme_data['site']})",
-                value=default_value,
-                key=f"enzyme_{enzyme}"
-            ):
-                selected_enzymes.append(enzyme)
-    
+            # デフォルト選択の設定
+            if hasattr(st.session_state, 'select_all'):
+                default_value = st.session_state.select_all
+            else:
+                default_value = (category == 'AokiLab Common')  # AokiLab Commonのみデフォルト選択
+            
+            for enzyme in enzymes:
+                enzyme_data = finder.restriction_enzymes[enzyme]
+                if st.sidebar.checkbox(
+                    f"{enzyme} ({enzyme_data['site']})",
+                    value=default_value,
+                    key=f"enzyme_{enzyme}"
+                ):
+                    selected_enzymes.append(enzyme)
+            
+            st.sidebar.markdown("---")  # カテゴリ間の区切り線
     # メインコンテンツ
     if not aa_sequence.strip():
         st.warning("アミノ酸配列を入力してください。")
@@ -237,7 +338,18 @@ def main():
     # 解析実行
     aa_sequence = aa_sequence.upper().strip()
     st.subheader(f"📊 解析結果: {aa_sequence}")
-    st.markdown(f"**配列長:** {len(aa_sequence)} アミノ酸 | **選択制限酵素:** {len(selected_enzymes)}個")
+    
+    # 選択された制限酵素の詳細情報
+    selected_by_category = {}
+    for enzyme in selected_enzymes:
+        category = finder.restriction_enzymes[enzyme]['category']
+        if category not in selected_by_category:
+            selected_by_category[category] = 0
+        selected_by_category[category] += 1
+    
+    category_summary = " | ".join([f"{cat}: {count}個" for cat, count in selected_by_category.items()])
+    
+    st.markdown(f"**配列長:** {len(aa_sequence)} アミノ酸 | **選択制限酵素:** {len(selected_enzymes)}個 ({category_summary})")
     
     with st.spinner("解析中..."):
         results = finder.find_restriction_sites_in_sequence(aa_sequence, selected_enzymes, max_span)
@@ -360,11 +472,49 @@ def main():
             avg_span = np.mean([r['span'] for r in results])
             st.metric("平均スパン", f"{avg_span:.1f}")
         with col4:
-            high_priority = len([r for r in results if r['priority'] <= 2])
-            st.metric("高優先度サイト", high_priority)
+            high_priority = len([r for r in results if r['priority'] <= 1])
+            st.metric("AokiLab Common", high_priority)
         
-        # 制限酵素情報
-        st.subheader("📚 制限酵素データベース")
+        # カテゴリ別統計
+        st.subheader("📈 カテゴリ別統計")
+        category_stats = {}
+        for result in results:
+            enzyme = result['enzyme']
+            category = finder.restriction_enzymes[enzyme]['category']
+            if category not in category_stats:
+                category_stats[category] = 0
+            category_stats[category] += 1
+        
+        if category_stats:
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("AokiLab Common", category_stats.get('AokiLab Common', 0))
+            with col2:
+                st.metric("AokiLab Standard", category_stats.get('AokiLab Standard', 0))
+            with col3:
+                st.metric("Others", category_stats.get('Others', 0))
+        
+        # 制限酵素データベース情報
+        st.subheader("📚 制限酵素データベース情報")
+        
+        # データベース統計
+        total_enzymes = len(finder.restriction_enzymes)
+        common_count = len([e for e, d in finder.restriction_enzymes.items() if d['category'] == 'AokiLab Common'])
+        standard_count = len([e for e, d in finder.restriction_enzymes.items() if d['category'] == 'AokiLab Standard'])
+        others_count = len([e for e, d in finder.restriction_enzymes.items() if d['category'] == 'Others'])
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("総制限酵素数", total_enzymes)
+        with col2:
+            st.metric("AokiLab Common", common_count)
+        with col3:
+            st.metric("AokiLab Standard", standard_count)
+        with col4:
+            st.metric("Others", others_count)
+        
+        # 選択された制限酵素の詳細テーブル
+        st.subheader("🔬 選択された制限酵素の詳細")
         enzyme_info = []
         for enzyme in selected_enzymes:
             data = finder.restriction_enzymes[enzyme]
@@ -374,11 +524,24 @@ def main():
                 '切断パターン': data['cut'],
                 '長さ': data['length'],
                 'カテゴリー': data['category'],
-                '優先度': finder.enzyme_priority.get(enzyme, 4)
+                '優先度': finder.enzyme_priority.get(enzyme, 3)
             })
         
-        enzyme_df = pd.DataFrame(enzyme_info)
-        st.dataframe(enzyme_df, use_container_width=True)
+        if enzyme_info:
+            enzyme_df = pd.DataFrame(enzyme_info)
+            # カテゴリー別に色分け
+            st.dataframe(
+                enzyme_df.style.apply(
+                    lambda x: ['background-color: #e8f5e8' if v == 'AokiLab Common' 
+                              else 'background-color: #e8f0ff' if v == 'AokiLab Standard'
+                              else 'background-color: #fff5e8' if v == 'Others'
+                              else '' for v in x], 
+                    subset=['カテゴリー']
+                ),
+                use_container_width=True
+            )
+        else:
+            st.info("制限酵素を選択してください。")
     
     with tab4:
         # エクスポート
