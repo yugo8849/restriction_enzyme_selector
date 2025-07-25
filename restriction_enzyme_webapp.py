@@ -240,6 +240,13 @@ class RestrictionEnzymeFinder:
         return combinations
 
 def main():
+    # ツールのインスタンス化（最初に実行）
+    try:
+        finder = RestrictionEnzymeFinder()
+    except Exception as e:
+        st.error(f"アプリケーションの初期化に失敗しました: {e}")
+        return
+    
     # タイトルとヘッダー
     st.title("🧬 制限酵素サイト導入ツール")
     st.markdown("**コドンの冗長性を利用した効率的な制限酵素サイト検索**")
@@ -283,8 +290,6 @@ def main():
     
     # 制限酵素選択
     st.sidebar.subheader("🔬 制限酵素選択")
-    
-    finder = RestrictionEnzymeFinder()
     
     # カテゴリー別に制限酵素を整理
     categories = {}
